@@ -1,0 +1,13 @@
+# Environment and secret files
+.env
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Python configuration (contains sensitive data)
+config.py
