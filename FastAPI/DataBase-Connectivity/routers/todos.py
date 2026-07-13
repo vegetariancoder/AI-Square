@@ -5,10 +5,12 @@ from sqlalchemy.orm import Session
 from models import Todo, Users
 from database import get_db
 from routers import auth
+from .auth import get_current_user
 
 router = APIRouter()
 
 db_dependency = Annotated[Session, Depends(get_db)]
+user_dependency = Annotated[dict, Depends(get_current_user)]
 router.include_router(auth.router)
 
 
@@ -51,7 +53,7 @@ class TodoRequest(BaseModel):
     }
 # TODOS
 @router.get("/todos",status_code=status.HTTP_200_OK,tags=["Todo"])
-async def get_all_todos(db: db_dependency):
+async def get_all_todos(user: user_dependency, db: db_dependency):
     """
     Retrieves all Todos items from the database.
 
@@ -70,7 +72,7 @@ async def get_all_todos(db: db_dependency):
     """
     try:
         if len(db.query(Todo).all()) > 0:
-            return db.query(Todo).all()
+            return db.query(Todo).filter(Todo.owner_id == user.get('id')).all()
         else:
             return "Table has 0 records"
     except Exception as e:
@@ -89,8 +91,10 @@ async def get_todo_by_id(db: db_dependency,todo_id: int = Path(gt=0)):
 
 
 @router.post("/add_todo",status_code=status.HTTP_201_CREATED,tags=["Todo"])
-async def create_todo(db: db_dependency,todo_request: TodoRequest):
+async def create_todo(user : user_dependency, db: db_dependency,todo_request: TodoRequest):
     try:
+        if user is None:
+            raise HTTPException(status_code=401,detail="Authentication Failed")
         todo_model = Todo(**todo_request.model_dump())
         db.add(todo_model)
         db.commit()
