@@ -25,8 +25,6 @@ class TodoRequest(BaseModel):
 
     :ivar title: Description of the task.
     :type title: str
-
-
     :ivar description: Detailed description of the task.
     :type description: str
     :ivar priority: Priority level of the task.
